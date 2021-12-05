@@ -1,0 +1,83 @@
+esphome:
+  name: d1mini-1
+  platform: ESP8266
+  board: d1_mini
+
+mqtt:                                                                                                 
+  broker: 192.168.1.101                                                                                  
+  port: 1883                                                                                         
+  username: mqttuser
+  password: goodpassword
+  topic_prefix: d1mini-MPPT
+  
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "eae798b8879353f1dc56ba8319e086fb"
+
+wifi:
+  networks:
+  - ssid: "SSID-Name"
+    password: "reallygoodpassword"
+
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "D1Mini-1 Fallback Hotspot"
+    password: "goodpassword"
+
+captive_portal:
+
+external_components:
+  - source: github://KinDR007/VictronMPPT-ESPHOME@main
+
+uart:
+  id: uart0
+#  tx_pin: D8  # Not used! The communication is read-only
+  rx_pin: D7
+  baud_rate: 19200
+  rx_buffer_size: 256
+#Black wire is ground, white is TX from MPPT (RX on D1 Mini)  
+
+victron:
+#  id: victron0
+  id: VictronMPPT
+  uart_id: uart0
+
+sensor:
+  - platform: victron
+#    victron_id: victron0
+    victron_id: VictronMPPT
+    panel_voltage:
+      name: "Panel voltage"
+    panel_power:
+      name: "Panel Power"
+    battery_voltage:
+      name: "Battery voltage"
+    battery_current:
+      name: "Battery current"
+      
+#switch:
+#- platform: gpio
+#  pin: D4
+#  id: red_pin
+
+#- platform: template
+#  name: "Red LED"
+#  optimistic: yes
+#  id: redtemp
+#  turn_on_action:
+#  - while:
+#      condition:
+#        lambda: 'return true;'
+#      then:
+#      - switch.turn_on: red_pin
+#      - delay: 500ms 
+#      - switch.turn_off: red_pin
+#      - delay: 500ms
+#  turn_off_action:
+#  - switch.turn_off: red_pin
