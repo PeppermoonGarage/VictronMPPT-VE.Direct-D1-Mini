@@ -5,4 +5,4 @@ Tx is right next to the +5V and Rx (not used here) is next to the ground.
 
 The VE.Direct port is a JST 2.0mm PH 4-Pin connector.  I got 5 on eBay for under $2.
 
-I have the yaml file I'm using on this site.
+I have posted the yaml configuration file I'm using on this site that is used with HomeAssistant/ESPHome.
