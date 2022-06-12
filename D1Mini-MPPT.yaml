@@ -1,17 +1,26 @@
 esphome:
-  name: d1mini-1
+  name: d1mini-4-mppt
   platform: ESP8266
   board: d1_mini
+#  board: esp01_1m  
+#esp8266:
+#  board: esp01_1m
+#  esphome:
+#  name: d1mini-3-mppt
+#  platform: ESP8266
+#  board: d1_mini
 
 mqtt:                                                                                                 
-  broker: 192.168.1.101                                                                                  
+  broker: !secret MQTT_IP
   port: 1883                                                                                         
-  username: mqttuser
-  password: goodpassword
-  topic_prefix: d1mini-MPPT
+  username: !secret MQTT_User
+  password: !secret MQTT_Password
+  topic_prefix: d1mini-4-mppt
   
 # Enable logging
 logger:
+
+web_server:
 
 # Enable Home Assistant API
 api:
@@ -21,16 +30,33 @@ ota:
 
 wifi:
   networks:
-  - ssid: "SSID-Name"
-    password: "reallygoodpassword"
-
+  - ssid: !secret NG24_wifi_ssid
+    password: !secret NG24_wifi_password
+  - ssid: !secret NG24_EXT_wifi_ssid
+    password: !secret NG24_EXT_wifi_password
+  - ssid: !secret Loaner1_wifi_ssid
+    password: !secret Loaner1_wifi_password
+  - ssid: !secret DonWood_wifi_ssid
+    password: !secret DonWood_wifi_password
+  - ssid: !secret Skyus_wifi_ssid
+    password: !secret Skyus_wifi_password
+  - ssid: !secret SenseNet_wifi_ssid
+    password: !secret SenseNet_wifi_password
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "D1Mini-1 Fallback Hotspot"
-    password: "goodpassword"
+    ssid: "D1Mini-4-MPPT Fallback Hotspot"
+    password: !secret Fallback_wifi_password
 
 captive_portal:
+
+#deep_sleep:
+#  id: deep_sleep_1
+#  run_duration: 120s
+#  sleep_duration: 1min 
+  
+#status_led:
+#  pin: GPIO2  
 
 external_components:
   - source: github://KinDR007/VictronMPPT-ESPHOME@main
@@ -38,10 +64,10 @@ external_components:
 uart:
   id: uart0
 #  tx_pin: D8  # Not used! The communication is read-only
-  rx_pin: D7
+  rx_pin: GPIO13  #GPIO13/D7  Note:  logging doesn't work when using RX
   baud_rate: 19200
   rx_buffer_size: 256
-#Black wire is ground, white is TX from MPPT (RX on D1 Mini)  
+#On harness, Black wire is ground, white is TX from MPPT (RX(D7) on D1 Mini)  
 
 victron:
 #  id: victron0
@@ -53,13 +79,17 @@ sensor:
 #    victron_id: victron0
     victron_id: VictronMPPT
     panel_voltage:
-      name: "Panel voltage"
+      id: mppt_panel_voltage
+      name: "MPPT Panel Voltage"
     panel_power:
-      name: "Panel Power"
+      id: mppt_panel_power
+      name: "MPPT Panel Power"
     battery_voltage:
-      name: "Battery voltage"
+      id: mppt_battery_voltage
+      name: "MPPT Battery Voltage"
     battery_current:
-      name: "Battery current"
+      id: mppt_battery_current   
+      name: "MPPT Battery Current"
       
 #switch:
 #- platform: gpio
@@ -81,3 +111,80 @@ sensor:
 #      - delay: 500ms
 #  turn_off_action:
 #  - switch.turn_off: red_pin
+
+
+font:
+  - file: "/config/fonts/DejaVuSansMono.ttf"
+    id: my_font_10
+    size: 10
+  - file: "/config/fonts/DejaVuSansMono.ttf"
+    id: my_font_20
+    size: 20    
+#  - file: '/usr/share/fonts/truetype/dejavu/arial.ttf'
+#    id: font3
+#    size: 14
+
+time:
+  - platform: sntp
+    id: sntp_time    
+    update_interval: 60s    
+    
+    
+i2c:
+  sda: D2
+  scl: D1
+  scan: false  
+  
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 64x48"
+    reset_pin: D0
+    address: 0x3C
+    id: my_display
+    
+    pages:
+      - id: page1
+        lambda: |-
+          it.printf(0, 0, id(my_font_10), "D1 Mini");
+          it.printf(0, 10, id(my_font_10), "4-MPPT");
+          it.strftime(0, 20, id(my_font_10), "%Y-%m-%d", id(sntp_time).now());          
+          it.strftime(0, 30, id(my_font_10), "%H:%M:%S", id(sntp_time).now());
+#          it.printf(0, 10, id(my_font), "MH T: %s", id(MH_Temp).state.c_str());
+#          it.print(0, 20, id(my_font), "Fine!");
+#          it.strftime(0, 20, id(my_font), "%Y-%m-%d", id(esptime).now());     
+#          it.strftime(0, 30, id(my_font), "%H:%M:%S", id(esptime).now());          
+#         it.print(0, 30, id(my_font), "Fine!");    
+#          it.print(0, 30, id(my_font), "%Y-%m-%d %H:%M");          
+      - id: page2
+        lambda: |-
+          it.printf(0, 0, id(my_font_10), "Solar");    
+          it.printf(0, 10, id(my_font_10), "Power");            
+          it.printf(0, 20, id(my_font_20), "%.0f", id(mppt_panel_power).state);
+      - id: page3
+        lambda: |-
+          it.printf(0, 0, id(my_font_10), "Battery");    
+          it.printf(0, 10, id(my_font_10), "Voltage");            
+          it.printf(0, 20, id(my_font_20), "%.2f", id(mppt_battery_voltage).state);          
+#          it.print(0, 10, id(my_font), "Whats Up?!");    
+#      - id: page3
+#        lambda: |-
+#          it.print(0, 10, id(my_font), "Bro!");          
+interval:
+  - interval: 3s
+    then:
+      - display.page.show_next: my_display
+      - component.update: my_display
+#      - component.update: homeassistant_time
+#  - interval: 1min
+#    then:
+#      - lambda: |-
+#          id(my_display).turn_off();
+#      - delay: 5s
+#      - lambda: |-
+#          id(my_display).turn_on();
+#      - deep_sleep.enter:
+#        id: deep_sleep_20min
+#        sleep_duration: 1min
+
+
+    
