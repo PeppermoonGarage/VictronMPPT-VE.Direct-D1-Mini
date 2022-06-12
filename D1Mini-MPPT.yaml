@@ -30,14 +30,6 @@ ota:
 
 wifi:
   networks:
-  - ssid: !secret NG24_wifi_ssid
-    password: !secret NG24_wifi_password
-  - ssid: !secret NG24_EXT_wifi_ssid
-    password: !secret NG24_EXT_wifi_password
-  - ssid: !secret Loaner1_wifi_ssid
-    password: !secret Loaner1_wifi_password
-  - ssid: !secret DonWood_wifi_ssid
-    password: !secret DonWood_wifi_password
   - ssid: !secret Skyus_wifi_ssid
     password: !secret Skyus_wifi_password
   - ssid: !secret SenseNet_wifi_ssid
